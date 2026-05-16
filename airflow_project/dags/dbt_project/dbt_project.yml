@@ -1,0 +1,23 @@
+name: 'ecommerce_elt'
+version: '1.0.0'
+config-version: 2
+
+profile: 'ecommerce_elt'    # must match the name in profiles.yml
+
+model-paths: ["models"]
+test-paths:  ["tests"]
+log-path:    "logs"
+target-path: "target"
+
+models:
+  ecommerce_elt:
+    staging:
+      +schema:       staging     # creates tables in ECOMMERCE_DB.STAGING
+      +materialized: view            # staging models are views — no storage cost
+
+    marts:
+      +schema:       marts       # creates tables in ECOMMERCE_DB.MARTS
+      +materialized: table           # mart models are tables — fast for BI
+
+vars:
+  start_date: '2024-01-01'

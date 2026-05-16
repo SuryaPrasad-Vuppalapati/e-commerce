@@ -1,0 +1,61 @@
+version: 2
+
+models:
+  - name: fact_orders
+    description: "One row per validated order. Star schema fact table."
+    columns:
+      - name: order_id
+        tests: [not_null, unique]
+      - name: customer_id
+        tests: [not_null]
+      - name: order_date
+        tests: [not_null]
+      - name: order_amount_usd
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+              max_value: 50000
+      - name: order_status
+        tests:
+          - accepted_values:
+              values: ['COMPLETED', 'PENDING', 'REFUNDED', 'CANCELLED']
+      - name: acquisition_channel
+        tests:
+          - accepted_values:
+              values: ['organic', 'paid_search', 'email', 'social', 'direct', 'affiliate']
+
+  - name: dim_customers
+    description: "Customer dimension with LTV and acquisition data."
+    columns:
+      - name: customer_id
+        tests: [not_null, unique]
+      - name: lifetime_value_usd
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+              max_value: 1000000
+      - name: customer_segment
+        tests:
+          - accepted_values:
+              values: ['high_value', 'mid_value', 'low_value']
+
+  - name: dim_products
+    description: "Product dimension."
+    columns:
+      - name: product_id
+        tests: [not_null, unique]
+      - name: product_category
+        tests: [not_null]
+
+  - name: fct_daily_metrics
+    description: "Pre-aggregated daily KPIs for Power BI."
+    columns:
+      - name: metric_date
+        tests: [not_null]
+      - name: bounce_rate_pct
+        tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+              max_value: 100
